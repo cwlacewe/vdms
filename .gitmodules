@@ -1,4 +1,4 @@
 [submodule "pmgd"]
 	path = src/pmgd
-	url = https://github.com/omp87/pmgd.git
-	branch = develop
+	url = https://github.com/cwlacewe/pmgd.git
+	branch = cwl_test
