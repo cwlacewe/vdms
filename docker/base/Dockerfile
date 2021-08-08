@@ -90,9 +90,9 @@ RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
 # Valijson
 RUN cd /valijson && cp -r include/* /usr/local/include/
 
-RUN git clone https://github.com/omp87/vdms.git && cd vdms && \
-git checkout develop && git submodule update --init --recursive && \
-cd src/pmgd && git checkout develop && cd /vdms && mkdir build && \
+RUN git clone https://github.com/cwlacewe/vdms.git && cd vdms && \
+git checkout cwl_pmgd_test && git submodule update --init --recursive && \
+cd src/pmgd && git checkout cwl_test && cd /vdms && mkdir build && \
 cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
 rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake \
 && cp /vdms/config-vdms.json /vdms/build/
