@@ -30,11 +30,11 @@
  */
 
 #include <limits>
+#include <algorithm>
 #include "VDMSConfig.h"
 #include "PMGDQueryHandler.h"
 #include "util.h" // PMGD util
 #include "PMGDIterators.h"
-#include <algorithm>
 
 // TODO In the complete version of VDMS, this file will live
 // within PMGD which would replace the PMGD namespace. Some of
@@ -143,45 +143,45 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
         response->set_cmd_grp_id(cmd->cmd_grp_id());
         switch (code)
         {
-        case PMGDCmd::TxBegin:
-        {
-            int tx_options = _readonly ? Transaction::ReadOnly : Transaction::ReadWrite;
-            _tx = new Transaction(*_db, tx_options);
-            set_response(response, protobufs::TX, PMGDCmdResponse::Success);
-            break;
-        }
-        case PMGDCmd::TxCommit:
-        {
-            _tx->commit();
-            set_response(response, protobufs::TX, PMGDCmdResponse::Success);
-            break;
-        }
-        case PMGDCmd::TxAbort:
-        {
-            set_response(response, protobufs::TX, PMGDCmdResponse::Abort,
-                         "Abort called");
-            retval = -1;
-            break;
-        }
-        case PMGDCmd::AddNode:
-            retval = add_node(cmd->add_node(), response);
-            break;
-        case PMGDCmd::AddEdge:
-            retval = add_edge(cmd->add_edge(), response);
-            break;
-        case PMGDCmd::QueryNode:
-            retval = query_node(cmd->query_node(), response);
+            case PMGDCmd::TxBegin:
+            {
+                int tx_options = _readonly ? Transaction::ReadOnly : Transaction::ReadWrite;
+                _tx = new Transaction(*_db, tx_options);
+                set_response(response, protobufs::TX, PMGDCmdResponse::Success);
+                break;
+            }
+            case PMGDCmd::TxCommit:
+            {
+                _tx->commit();
+                set_response(response, protobufs::TX, PMGDCmdResponse::Success);
+                break;
+            }
+            case PMGDCmd::TxAbort:
+            {
+                set_response(response, protobufs::TX, PMGDCmdResponse::Abort,
+                             "Abort called");
+                retval = -1;
+                break;
+            }
+            case PMGDCmd::AddNode:
+                retval = add_node(cmd->add_node(), response);
+                break;
+            case PMGDCmd::AddEdge:
+                retval = add_edge(cmd->add_edge(), response);
+                break;
+            case PMGDCmd::QueryNode:
+                retval = query_node(cmd->query_node(), response);
 
-            break;
-        case PMGDCmd::QueryEdge:
-            retval = query_edge(cmd->query_edge(), response);
-            break;
-        case PMGDCmd::UpdateNode:
-            update_node(cmd->update_node(), response);
-            break;
-        case PMGDCmd::UpdateEdge:
-            update_edge(cmd->update_edge(), response);
-            break;
+                break;
+            case PMGDCmd::QueryEdge:
+                retval = query_edge(cmd->query_edge(), response);
+                break;
+            case PMGDCmd::UpdateNode:
+                update_node(cmd->update_node(), response);
+                break;
+            case PMGDCmd::UpdateEdge:
+                update_edge(cmd->update_edge(), response);
+                break;
         }
     }
     catch (Exception e)
@@ -447,30 +447,30 @@ void PMGDQueryHandler::set_property(Element &e, const PMGDProp &p)
 {
     switch (p.type())
     {
-    case PMGDProp::BooleanType:
-        e.set_property(p.key().c_str(), p.bool_value());
-        break;
-    case PMGDProp::IntegerType:
-        e.set_property(p.key().c_str(), (long long)p.int_value());
-        break;
-    case PMGDProp::StringType:
-        e.set_property(p.key().c_str(), p.string_value());
-        break;
-    case PMGDProp::FloatType:
-        e.set_property(p.key().c_str(), p.float_value());
-        break;
-    case PMGDProp::TimeType:
-    {
-        struct tm tm_e;
-        int hr, min;
-        unsigned long usec;
-        string_to_tm(p.time_value(), &tm_e, &usec, &hr, &min);
-        Time t_e(&tm_e, usec, hr, min); // time diff
-        e.set_property(p.key().c_str(), t_e);
-        break;
-    }
-    case PMGDProp::BlobType:
-        e.set_property(p.key().c_str(), p.blob_value());
+        case PMGDProp::BooleanType:
+            e.set_property(p.key().c_str(), p.bool_value());
+            break;
+        case PMGDProp::IntegerType:
+            e.set_property(p.key().c_str(), (long long)p.int_value());
+            break;
+        case PMGDProp::StringType:
+            e.set_property(p.key().c_str(), p.string_value());
+            break;
+        case PMGDProp::FloatType:
+            e.set_property(p.key().c_str(), p.float_value());
+            break;
+        case PMGDProp::TimeType:
+        {
+            struct tm tm_e;
+            int hr, min;
+            unsigned long usec;
+            string_to_tm(p.time_value(), &tm_e, &usec, &hr, &min);
+            Time t_e(&tm_e, usec, hr, min); // time diff
+            e.set_property(p.key().c_str(), t_e);
+            break;
+        }
+        case PMGDProp::BlobType:
+            e.set_property(p.key().c_str(), p.blob_value());
     }
 }
 
@@ -761,27 +761,27 @@ Property PMGDQueryHandler::construct_search_property(const PMGDProp &p)
 {
     switch (p.type())
     {
-    case PMGDProp::BooleanType:
-        return Property(p.bool_value());
-    case PMGDProp::IntegerType:
-        return Property((long long)p.int_value());
-    case PMGDProp::StringType:
-        return Property(p.string_value());
-    case PMGDProp::FloatType:
-        return Property(p.float_value());
-    case PMGDProp::TimeType:
-    {
-        struct tm tm_e;
-        int hr, min;
-        unsigned long usec;
-        string_to_tm(p.time_value(), &tm_e, &usec, &hr, &min);
-        Time t_e(&tm_e, usec, hr, min); // time diff
-        return Property(t_e);
-    }
-    case PMGDProp::BlobType:
-        // We throw here to avoid extra work when going through
-        // multiple levels of calls.
-        throw PMGDException(PropertyTypeInvalid, "Search on blob property not permitted");
+        case PMGDProp::BooleanType:
+            return Property(p.bool_value());
+        case PMGDProp::IntegerType:
+            return Property((long long)p.int_value());
+        case PMGDProp::StringType:
+            return Property(p.string_value());
+        case PMGDProp::FloatType:
+            return Property(p.float_value());
+        case PMGDProp::TimeType:
+        {
+            struct tm tm_e;
+            int hr, min;
+            unsigned long usec;
+            string_to_tm(p.time_value(), &tm_e, &usec, &hr, &min);
+            Time t_e(&tm_e, usec, hr, min); // time diff
+            return Property(t_e);
+        }
+        case PMGDProp::BlobType:
+            // We throw here to avoid extra work when going through
+            // multiple levels of calls.
+            throw PMGDException(PropertyTypeInvalid, "Search on blob property not permitted");
     }
 }
 
@@ -800,17 +800,6 @@ namespace VDMS
         PMGDCmdResponse *response);
 };
 
-void dump_properties(PropertyIterator);
-
-void dump_properties(PropertyIterator iter)
-{
-    while (iter)
-    {
-        printf("  %s: %s\n", iter->id().name().c_str(), property_text(*iter).c_str());
-        iter.next();
-    }
-}
-
 template <class Iterator>
 void PMGDQueryHandler::build_results(Iterator &ni,
                                      const protobufs::ResultInfo &qn,
@@ -821,133 +810,133 @@ void PMGDQueryHandler::build_results(Iterator &ni,
     size_t count = 0;
     switch (qn.r_type())
     {
-    case protobufs::List:
-    {
-        std::vector<StringID> keyids;
-        for (int i = 0; i < qn.response_keys_size(); ++i)
-            keyids.push_back(StringID(qn.response_keys(i).c_str()));
+        case protobufs::List:
+        {
+            std::vector<StringID> keyids;
+            for (int i = 0; i < qn.response_keys_size(); ++i)
+                keyids.push_back(StringID(qn.response_keys(i).c_str()));
 
-        auto &rmap = *(response->mutable_prop_values());
-        for (; ni; ni.next())
-        {
-            for (int i = 0; i < keyids.size(); ++i)
+            auto& rmap = *(response->mutable_prop_values());
+            for (; ni; ni.next())
             {
-                Property j_p;
-                PMGDPropList &list = rmap[qn.response_keys(i)];
-                PMGDProp *p_p = list.add_values();
-                if (!ni->check_property(keyids[i], j_p))
+                for (int i = 0; i < keyids.size(); ++i)
                 {
-                    construct_missing_property(p_p);
-                    continue;
+                    Property j_p;
+                    PMGDPropList &list = rmap[qn.response_keys(i)];
+                    PMGDProp *p_p = list.add_values();
+                    if (!ni->check_property(keyids[i], j_p))
+                    {
+                        construct_missing_property(p_p);
+                        continue;
+                    }
+                    construct_protobuf_property(j_p, p_p);
                 }
-                construct_protobuf_property(j_p, p_p);
-            }
-            if (!_readonly)
-            {
-                _db->remove(*ni);
-            }
+                if (!_readonly)
+                {
+                    _db->remove(*ni);
+                }
 
-            count++;
-            if (count >= limit)
-                break;
-        }
-        response->set_op_int_value(count);
-        break;
-    }
-    case protobufs::Count:
-    {
-        for (; ni; ni.next())
-            count++;
-        response->set_op_int_value(count);
-        break;
-    }
-    case protobufs::Properties:
-    {
-        std::list<std::string> prop_names;
-        for (; ni; ni.next())
-        {
-            PropertyIterator prop_it = ni->get_properties();
-            for (; prop_it; prop_it.next())
-            {
-                bool found = (std::find(prop_names.begin(), prop_names.end(), prop_it->id().name().c_str()) != prop_names.end());
-                if (!found)
-                {
-                    prop_names.push_back(prop_it->id().name().c_str());
-                    response->add_op_list_value(prop_it->id().name().c_str());
-                }
+                count++;
+                if (count >= limit)
+                    break;
             }
-        }
-        break;
-    }
-    // Next two assume that the property requested is either Int or Float.
-    // Also, only looks at the first property specified.
-    case protobufs::Average:
-        avg = true;
-    case protobufs::Sum:
-    {
-        // Since the iterator can be null if no _ref is used, make sure
-        // it has elements before proceeding, else return.
-        if (!bool(ni))
-        {
-            if (avg)
-                response->set_op_float_value(0.0);
-            else
-                response->set_op_int_value(0);
+            response->set_op_int_value(count);
             break;
         }
+        case protobufs::Count:
+        {
+            for (; ni; ni.next())
+                count++;
+            response->set_op_int_value(count);
+            break;
+        }
+        case protobufs::Properties:
+        {
+            std::list<std::string> prop_names;
+            for (; ni; ni.next())
+            {
+                PropertyIterator prop_it = ni->get_properties();
+                for (; prop_it; prop_it.next())
+                {
+                    bool found = (std::find(prop_names.begin(), prop_names.end(), prop_it->id().name().c_str()) != prop_names.end());
+                    if (!found)
+                    {
+                        prop_names.push_back(prop_it->id().name().c_str());
+                        response->add_op_list_value(prop_it->id().name().c_str());
+                    }
+                }
+            }
+            break;
+        }
+        // Next two assume that the property requested is either Int or Float.
+        // Also, only looks at the first property specified.
+        case protobufs::Average:
+            avg = true;
+        case protobufs::Sum:
+        {
+            // Since the iterator can be null if no _ref is used, make sure
+            // it has elements before proceeding, else return.
+            if (!bool(ni))
+            {
+                if (avg)
+                    response->set_op_float_value(0.0);
+                else
+                    response->set_op_int_value(0);
+                break;
+            }
 
-        // We currently only use the first property key even if multiple
-        // are provided. And we can assume that the syntax checker makes
-        // sure of getting one for sure.
-        StringID keyid(qn.response_keys(0).c_str());
-        if (ni->get_property(keyid).type() == PropertyType::Integer)
-        {
-            size_t sum = 0;
-            for (; ni; ni.next())
+            // We currently only use the first property key even if multiple
+            // are provided. And we can assume that the syntax checker makes
+            // sure of getting one for sure.
+            StringID keyid(qn.response_keys(0).c_str());
+            if (ni->get_property(keyid).type() == PropertyType::Integer)
             {
-                sum += ni->get_property(keyid).int_value();
-                count++;
-                if (count >= limit)
-                    break;
+                size_t sum = 0;
+                for (; ni; ni.next())
+                {
+                    sum += ni->get_property(keyid).int_value();
+                    count++;
+                    if (count >= limit)
+                        break;
+                }
+                if (avg)
+                    response->set_op_float_value((double)sum / count);
+                else
+                    response->set_op_int_value(sum);
             }
-            if (avg)
-                response->set_op_float_value((double)sum / count);
-            else
-                response->set_op_int_value(sum);
-        }
-        else if (ni->get_property(keyid).type() == PropertyType::Float)
-        {
-            double sum = 0.0;
-            for (; ni; ni.next())
+            else if (ni->get_property(keyid).type() == PropertyType::Float)
             {
-                sum += ni->get_property(keyid).float_value();
-                count++;
-                if (count >= limit)
-                    break;
+                double sum = 0.0;
+                for (; ni; ni.next())
+                {
+                    sum += ni->get_property(keyid).float_value();
+                    count++;
+                    if (count >= limit)
+                        break;
+                }
+                if (avg)
+                    response->set_op_float_value(sum / count);
+                else
+                    response->set_op_float_value(sum);
             }
-            if (avg)
-                response->set_op_float_value(sum / count);
             else
-                response->set_op_float_value(sum);
+            {
+                set_response(response, PMGDCmdResponse::Error,
+                             "Wrong first property for sum/average");
+            }
+            break;
         }
-        else
+        case protobufs::NodeID:
         {
+            // Makes sense only when unique was used. Otherwise it sets the
+            // int value to the global id of the last node in the iterator.
+            for (; ni; ni.next())
+                response->set_op_int_value(ni->get_id());
+            break;
+        }
+        default:
             set_response(response, PMGDCmdResponse::Error,
-                         "Wrong first property for sum/average");
-        }
-        break;
-    }
-    case protobufs::NodeID:
-    {
-        // Makes sense only when unique was used. Otherwise it sets the
-        // int value to the global id of the last node in the iterator.
-        for (; ni; ni.next())
-            response->set_op_int_value(ni->get_id());
-        break;
-    }
-    default:
-        set_response(response, PMGDCmdResponse::Error,
-                     "Unknown operation type for query");
+                         "Unknown operation type for query");
     }
     //ddm need to add a deleter flag that says that a query wants to delete content
     //if deleter flag is true, need to iterate through the nodes that were returned and delete them from the graph
@@ -959,23 +948,23 @@ void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, PMGDProp
     p_p->set_type((PMGDProp::PropertyType)j_p.type());
     switch (j_p.type())
     {
-    case PropertyType::Boolean:
-        p_p->set_bool_value(j_p.bool_value());
-        break;
-    case PropertyType::Integer:
-        p_p->set_int_value(j_p.int_value());
-        break;
-    case PropertyType::String:
-        p_p->set_string_value(j_p.string_value());
-        break;
-    case PropertyType::Float:
-        p_p->set_float_value(j_p.float_value());
-        break;
-    case PropertyType::Time:
-        p_p->set_time_value(time_to_string(j_p.time_value()));
-        break;
-    case PropertyType::Blob:
-        p_p->set_blob_value(j_p.blob_value().value, j_p.blob_value().size);
+        case PropertyType::Boolean:
+            p_p->set_bool_value(j_p.bool_value());
+            break;
+        case PropertyType::Integer:
+            p_p->set_int_value(j_p.int_value());
+            break;
+        case PropertyType::String:
+            p_p->set_string_value(j_p.string_value());
+            break;
+        case PropertyType::Float:
+            p_p->set_float_value(j_p.float_value());
+            break;
+        case PropertyType::Time:
+            p_p->set_time_value(time_to_string(j_p.time_value()));
+            break;
+        case PropertyType::Blob:
+            p_p->set_blob_value(j_p.blob_value().value, j_p.blob_value().size);
     }
 }
 

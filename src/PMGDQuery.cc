@@ -46,12 +46,13 @@ using namespace VDMS;
 // This is for internal reference of the transaction
 #define REFERENCE_RANGE_START 20000
 
-PMGDQuery::PMGDQuery(PMGDQueryHandler &pmgd_qh) : _pmgd_qh(pmgd_qh), _current_ref(REFERENCE_RANGE_START),
-                                                  _readonly(true)
+PMGDQuery::PMGDQuery(PMGDQueryHandler &pmgd_qh) :
+    _pmgd_qh(pmgd_qh), _current_ref(REFERENCE_RANGE_START),
+    _readonly(true)
 {
     _current_group_id = 0;
     //this command to start a new transaction
-    PMGDCmd *cmdtx = new PMGDCmd;
+    PMGDCmd* cmdtx = new PMGDCmd;
     //this the protobuf of a new TxBegin
     cmdtx->set_cmd_id(PMGDCmd::TxBegin);
     cmdtx->set_cmd_grp_id(_current_group_id); //give it an ID
@@ -60,31 +61,28 @@ PMGDQuery::PMGDQuery(PMGDQueryHandler &pmgd_qh) : _pmgd_qh(pmgd_qh), _current_re
 
 PMGDQuery::~PMGDQuery()
 {
-    for (auto cmd : _cmds)
-    {
+    for (auto cmd : _cmds) {
         delete cmd;
     }
 }
 
-Json::Value &PMGDQuery::run()
+Json::Value& PMGDQuery::run()
 {
     add_group(); // will set _current_group_id correctly
 
     // End of the transaction
-    PMGDCmd *cmdtxend = new PMGDCmd;
+    PMGDCmd* cmdtxend = new PMGDCmd;
     // Commit here doesn't change anything. Just indicates end of TX
     cmdtxend->set_cmd_id(PMGDCmd::TxCommit);
     cmdtxend->set_cmd_grp_id(_current_group_id);
     _cmds.push_back(cmdtxend);
 
     // execute the queries using the PMGDQueryHandler object
-    std::vector<std::vector<PMGDCmdResponse *>> _pmgd_responses;
+    std::vector<std::vector<PMGDCmdResponse* >> _pmgd_responses;
     _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group_id + 1, _readonly);
 
-    if (_pmgd_responses.size() != _current_group_id + 1)
-    {
-        if (_pmgd_responses.size() == 1 && _pmgd_responses[0].size() == 1)
-        {
+    if (_pmgd_responses.size() != _current_group_id + 1) {
+        if (_pmgd_responses.size() == 1 && _pmgd_responses[0].size() == 1) {
             _json_responses["status"] = -1;
             _json_responses["info"] = _pmgd_responses[0][0]->error_msg();
             return _json_responses;
@@ -106,7 +104,7 @@ Json::Value &PMGDQuery::run()
         _json_responses.append(arr);
     }
 
-    for (auto &group : _pmgd_responses)
+    for (auto& group : _pmgd_responses)
     {
         for (auto ptr : group)
         {
@@ -118,7 +116,7 @@ Json::Value &PMGDQuery::run()
     return _json_responses;
 }
 
-void PMGDQuery::add_link(const Json::Value &link, PMGDQueryNode *qn)
+void PMGDQuery::add_link(const Json::Value& link, PMGDQueryNode* qn)
 {
     PMGD::protobufs::LinkInfo *qnl = qn->mutable_link();
 
@@ -150,88 +148,88 @@ void PMGDQuery::add_link(const Json::Value &link, PMGDQueryNode *qn)
     }
 }
 
-void PMGDQuery::set_value(const std::string &key, const PMGDProp &p,
-                          Json::Value &prop)
+void PMGDQuery::set_value(const std::string& key, const PMGDProp& p,
+                          Json::Value& prop)
 {
     switch (p.type())
     {
-    case PMGDProp::BooleanType:
-        prop[key] = p.bool_value();
-        break;
+        case PMGDProp::BooleanType:
+            prop[key] = p.bool_value();
+            break;
 
-    case PMGDProp::IntegerType:
-        prop[key] = (Json::Value::Int64)p.int_value();
-        break;
+        case PMGDProp::IntegerType:
+            prop[key] = (Json::Value::Int64)p.int_value();
+            break;
 
-    case PMGDProp::StringType:
-        prop[key] = p.string_value();
-        break;
+        case PMGDProp::StringType:
+            prop[key] = p.string_value();
+            break;
 
-    case PMGDProp::TimeType:
-        prop[key] = p.time_value();
-        break;
+        case PMGDProp::TimeType:
+            prop[key] = p.time_value();
+            break;
 
-    case PMGDProp::FloatType:
-        prop[key] = p.float_value();
-        break;
+        case PMGDProp::FloatType:
+            prop[key] = p.float_value();
+            break;
 
-    default:
-        throw ExceptionCommand(PMGDTransactiontError, "Type Error");
+        default:
+            throw ExceptionCommand(PMGDTransactiontError, "Type Error");
     }
 }
 
-void PMGDQuery::set_property(PMGDProp *p, const std::string &key,
-                             const Json::Value &val)
+void PMGDQuery::set_property(PMGDProp* p, const std::string& key,
+                             const Json::Value& val)
 {
     p->set_key(key);
 
     switch (val.type())
     {
-    case Json::intValue:
-    case Json::uintValue:
-        p->set_type(PMGDProp::IntegerType);
-        p->set_int_value(val.asInt64());
-        break;
+        case Json::intValue:
+        case Json::uintValue:
+            p->set_type(PMGDProp::IntegerType);
+            p->set_int_value(val.asInt64());
+            break;
 
-    case Json::booleanValue:
-        p->set_type(PMGDProp::BooleanType);
-        p->set_bool_value(val.asBool());
-        break;
+        case Json::booleanValue:
+            p->set_type(PMGDProp::BooleanType);
+            p->set_bool_value(val.asBool());
+            break;
 
-    case Json::realValue:
-        p->set_type(PMGDProp::FloatType);
-        p->set_float_value(val.asDouble());
-        break;
+        case Json::realValue:
+            p->set_type(PMGDProp::FloatType);
+            p->set_float_value(val.asDouble());
+            break;
 
-    case Json::stringValue:
-        p->set_type(PMGDProp::StringType);
-        p->set_string_value(val.asString());
-        break;
-
-    case Json::objectValue:
-        if (val.isMember("_date"))
-        {
-            p->set_type(PMGDProp::TimeType);
-            p->set_time_value(val["_date"].asString());
-        }
-        else if (val.isMember("_blob"))
-        {
-            // the blob value is read and stored as a string
+        case Json::stringValue:
             p->set_type(PMGDProp::StringType);
-            p->set_string_value(val["_blob"].asString());
-        }
-        else
-        {
+            p->set_string_value(val.asString());
+            break;
+
+        case Json::objectValue:
+            if (val.isMember("_date"))
+            {
+                p->set_type(PMGDProp::TimeType);
+                p->set_time_value(val["_date"].asString());
+            }
+            else if (val.isMember("_blob"))
+            {
+                // the blob value is read and stored as a string
+                p->set_type(PMGDProp::StringType);
+                p->set_string_value(val["_blob"].asString());
+            }
+            else
+            {
+                printf("%s\n", key.c_str());
+                throw ExceptionCommand(PMGDTransactiontError,
+                                       "Object Type Error");
+            }
+            break;
+
+        default:
             printf("%s\n", key.c_str());
             throw ExceptionCommand(PMGDTransactiontError,
                                    "Object Type Error");
-        }
-        break;
-
-    default:
-        printf("%s\n", key.c_str());
-        throw ExceptionCommand(PMGDTransactiontError,
-                               "Object Type Error");
     }
 }
 
@@ -243,7 +241,7 @@ Json::Value PMGDQuery::construct_error_response(PMGDCmdResponse *response)
     return ret;
 }
 
-Json::Value PMGDQuery::parse_response(PMGDCmdResponse *response)
+Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
 {
     Json::Value ret;
     int return_code = response->error_code();
@@ -262,122 +260,122 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse *response)
     switch (response->r_type())
     {
 
-    case PMGD::protobufs::NodeID:
-        if (!response_success_or_exists())
-        {
-            return construct_error_response(response);
-        }
-        break;
-
-    case PMGD::protobufs::EdgeID:
-        if (!response_success_or_exists())
-        {
-            return construct_error_response(response);
-        }
-        break;
-
-    case PMGD::protobufs::Cached:
-        if (!response_success())
-            return construct_error_response(response);
-        break;
-
-    case PMGD::protobufs::List:
-        if (response_success())
-        {
-            Json::Value list(Json::arrayValue);
-            auto &mymap = response->prop_values();
-
-            // assert(mymap.size() > 0);
-
-            uint64_t count = response->op_int_value();
-
-            for (uint64_t i = 0; i < count; ++i)
+        case PMGD::protobufs::NodeID:
+            if (!response_success_or_exists())
             {
-                Json::Value prop;
+                return construct_error_response(response);
+            }
+            break;
 
-                for (auto &key : mymap)
+        case PMGD::protobufs::EdgeID:
+            if (!response_success_or_exists())
+            {
+                return construct_error_response(response);
+            }
+            break;
+
+        case PMGD::protobufs::Cached:
+            if (!response_success())
+                return construct_error_response(response);
+            break;
+
+        case PMGD::protobufs::List:
+            if (response_success())
+            {
+                Json::Value list(Json::arrayValue);
+                auto& mymap = response->prop_values();
+
+                // assert(mymap.size() > 0);
+
+                uint64_t count = response->op_int_value();
+
+                for (uint64_t i = 0; i < count; ++i)
                 {
-                    const PMGDPropList &p = key.second;
-                    set_value(key.first, p.values(i), prop);
+                    Json::Value prop;
+
+                    for (auto& key : mymap)
+                    {
+                        const PMGDPropList& p = key.second;
+                        set_value(key.first, p.values(i), prop);
+                    }
+
+                    list.append(prop);
                 }
 
-                list.append(prop);
+                // if count <= 0, we return an empty list (json array)
+                ret["returned"] = (Json::UInt64)count;
+                if (response->node_edge())
+                    ret["entities"] = list;
+                else
+                    ret["connections"] = list;
             }
-
-            // if count <= 0, we return an empty list (json array)
-            ret["returned"] = (Json::UInt64)count;
-            if (response->node_edge())
-                ret["entities"] = list;
             else
-                ret["connections"] = list;
-        }
-        else
-        {
-            return construct_error_response(response);
-        }
-        break;
-
-    case PMGD::protobufs::Average:
-        if (response_success())
-        {
-            assert(response->op_oneof_case() == PMGDCmdResponse::kOpFloatValue);
-            double average = response->op_float_value();
-            ret["average"] = double(average);
-        }
-        else
-        {
-            return construct_error_response(response);
-        }
-        break;
-
-    case PMGD::protobufs::Sum:
-        if (response_success())
-        {
-            if (response->op_oneof_case() == PMGDCmdResponse::kOpFloatValue)
-                ret["sum"] = response->op_float_value();
-            else
-                ret["sum"] = (Json::UInt64)response->op_int_value();
-        }
-        else
-        {
-            return construct_error_response(response);
-        }
-        break;
-
-    case PMGD::protobufs::Count:
-        if (response_success())
-        {
-            ret["count"] = (Json::UInt64)response->op_int_value();
-        }
-        else
-        {
-            return construct_error_response(response);
-        }
-        break;
-
-    case PMGD::protobufs::Properties:
-        if (response_success())
-        {
-            Json::Value list(Json::arrayValue);
-
-            const google::protobuf::RepeatedPtrField<std::__cxx11::basic_string<char>> props = response->op_list_value();
-
-            for (uint64_t i = 0; i < props.size(); ++i)
             {
-
-                list.append(props[i]);
+                return construct_error_response(response);
             }
+            break;
 
-            ret["properties"] = list;
-        }
-        else
-        {
+        case PMGD::protobufs::Average:
+            if (response_success())
+            {
+                assert(response->op_oneof_case() == PMGDCmdResponse::kOpFloatValue);
+                double average = response->op_float_value();
+                ret["average"] = double(average);
+            }
+            else
+            {
+                return construct_error_response(response);
+            }
+            break;
+
+        case PMGD::protobufs::Sum:
+            if (response_success())
+            {
+                if (response->op_oneof_case() == PMGDCmdResponse::kOpFloatValue)
+                    ret["sum"] = response->op_float_value();
+                else
+                    ret["sum"] = (Json::UInt64)response->op_int_value();
+            }
+            else
+            {
+                return construct_error_response(response);
+            }
+            break;
+
+        case PMGD::protobufs::Count:
+            if (response_success())
+            {
+                ret["count"] = (Json::UInt64)response->op_int_value();
+            }
+            else
+            {
+                return construct_error_response(response);
+            }
+            break;
+
+        case PMGD::protobufs::Properties:
+            if (response_success())
+            {
+                Json::Value list(Json::arrayValue);
+
+                const google::protobuf::RepeatedPtrField<std::__cxx11::basic_string<char>> props = response->op_list_value();
+
+                for (uint64_t i = 0; i < props.size(); ++i)
+                {
+
+                    list.append(props[i]);
+                }
+
+                ret["properties"] = list;
+            }
+            else
+            {
+                return construct_error_response(response);
+            }
+            break;
+
+        default:
             return construct_error_response(response);
-        }
-        break;
-
-    default:
-        return construct_error_response(response);
     }
 
     ret["status"] = PMGDCmdResponse::Success;
@@ -385,8 +383,8 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse *response)
 }
 
 template <class T>
-bool PMGDQuery::parse_query_constraints(const Json::Value &constraints,
-                                        T *pb_constraints, bool purge_query)
+bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
+                                        T* pb_constraints, bool purge_query)
 {
     bool expiration_query_match = false;
     bool deletion_query_match = false;
@@ -394,8 +392,8 @@ bool PMGDQuery::parse_query_constraints(const Json::Value &constraints,
     for (auto it = constraints.begin(); it != constraints.end(); ++it)
     {
 
-        const Json::Value &predicate = *it;
-        const std::string &key = it.key().asString();
+        const Json::Value& predicate = *it;
+        const std::string& key = it.key().asString();
 
         if (key.compare("_deletion") == 0)
         {
@@ -418,7 +416,7 @@ bool PMGDQuery::parse_query_constraints(const Json::Value &constraints,
                 // not sure if it is right.
                 pb_constraints->set_p_op(PMGD::protobufs::Or);
 
-                const std::string &pred1 = predicate[0].asString();
+                const std::string& pred1 = predicate[0].asString();
 
                 PMGDPropPred::Op op;
 
@@ -455,22 +453,22 @@ bool PMGDQuery::parse_query_constraints(const Json::Value &constraints,
                 for (auto &value : predicate[1])
                 {
 
-                    PMGDPropPred *pp = pb_constraints->add_predicates();
+                    PMGDPropPred* pp = pb_constraints->add_predicates();
                     pp->set_key(key); //assign the property predicate key
                     pp->set_op(op);
-                    PMGDProp *p1 = pp->mutable_v1();
+                    PMGDProp* p1 = pp->mutable_v1();
                     set_property(p1, key, value);
                 }
             }
             else if (predicate.size() == 2)
             {
-                PMGDPropPred *pp = pb_constraints->add_predicates();
+                PMGDPropPred* pp = pb_constraints->add_predicates();
                 pp->set_key(key); //assign the property predicate key
 
-                PMGDProp *p1 = pp->mutable_v1();
+                PMGDProp* p1 = pp->mutable_v1();
                 set_property(p1, key, predicate[1]);
 
-                const std::string &pred1 = predicate[0].asString();
+                const std::string& pred1 = predicate[0].asString();
 
                 if (pred1 == ">")
                 {
@@ -513,18 +511,18 @@ bool PMGDQuery::parse_query_constraints(const Json::Value &constraints,
             else
             {
 
-                PMGDPropPred *pp = pb_constraints->add_predicates();
+                PMGDPropPred* pp = pb_constraints->add_predicates();
                 pp->set_key(key); //assign the property predicate key
 
-                PMGDProp *p1 = pp->mutable_v1();
+                PMGDProp* p1 = pp->mutable_v1();
                 set_property(p1, key, predicate[1]);
 
-                const std::string &pred1 = predicate[0].asString();
+                const std::string& pred1 = predicate[0].asString();
 
-                PMGDProp *p2 = pp->mutable_v2();
+                PMGDProp* p2 = pp->mutable_v2();
                 set_property(p2, key, predicate[3]);
 
-                const std::string &pred2 = predicate[2].asString();
+                const std::string& pred2 = predicate[2].asString();
 
                 if (pred1 == ">" && pred2 == "<")
                     pp->set_op(PMGDPropPred::GtLt);
@@ -544,7 +542,7 @@ bool PMGDQuery::parse_query_constraints(const Json::Value &constraints,
     return final_purge_query;
 }
 
-void PMGDQuery::get_response_type(const Json::Value &res, PMGDQueryResultInfo *qn)
+void PMGDQuery::get_response_type(const Json::Value& res, PMGDQueryResultInfo *qn)
 {
     for (auto it = res.begin(); it != res.end(); it++)
     {
@@ -553,12 +551,12 @@ void PMGDQuery::get_response_type(const Json::Value &res, PMGDQueryResultInfo *q
     }
 }
 
-void PMGDQuery::parse_query_results(const Json::Value &results,
+void PMGDQuery::parse_query_results(const Json::Value& results,
                                     PMGDQueryResultInfo *qn)
 {
     for (auto it = results.begin(); it != results.end(); it++)
     {
-        const std::string &key = it.key().asString();
+        const std::string& key = it.key().asString();
 
         if (key == "list")
         {
@@ -616,13 +614,13 @@ void PMGDQuery::parse_query_results(const Json::Value &results,
 }
 
 void PMGDQuery::AddNode(int ref,
-                        const std::string &tag,
-                        const Json::Value &props,
-                        const Json::Value &constraints)
+                        const std::string& tag,
+                        const Json::Value& props,
+                        const Json::Value& constraints)
 {
     _readonly = false;
 
-    PMGDCmd *cmdadd = new PMGDCmd();
+    PMGDCmd* cmdadd = new PMGDCmd();
     cmdadd->set_cmd_id(PMGDCmd::AddNode);
     cmdadd->set_cmd_grp_id(_current_group_id);
     PMGD::protobufs::AddNode *an = cmdadd->mutable_add_node();
@@ -640,14 +638,14 @@ void PMGDQuery::AddNode(int ref,
             Json::UInt64 creation_time = std::chrono::time_point_cast<std::chrono::seconds>(now).time_since_epoch().count();
             Json::UInt64 expiration_time = creation_time + it->asUInt64();
             //std::cout << "match found" << std::endl;
-            PMGDProp *q = n->add_properties();
+            PMGDProp* q = n->add_properties();
             set_property(q, "_creation", Json::Value(creation_time));
             q = n->add_properties();
             set_property(q, "_expiration", Json::Value(expiration_time));
         }
         else
         {
-            PMGDProp *p = n->add_properties();
+            PMGDProp* p = n->add_properties();
             set_property(p, it.key().asString(), *it);
         }
     }
@@ -669,15 +667,15 @@ void PMGDQuery::AddNode(int ref,
 }
 
 void PMGDQuery::UpdateNode(int ref,
-                           const std::string &tag,
-                           const Json::Value &props,
-                           const Json::Value &remove_props,
-                           const Json::Value &constraints,
+                           const std::string& tag,
+                           const Json::Value& props,
+                           const Json::Value& remove_props,
+                           const Json::Value& constraints,
                            bool unique)
 {
     _readonly = false;
 
-    PMGDCmd *cmdupdate = new PMGDCmd();
+    PMGDCmd* cmdupdate = new PMGDCmd();
     cmdupdate->set_cmd_id(PMGDCmd::UpdateNode);
     cmdupdate->set_cmd_grp_id(_current_group_id);
     PMGD::protobufs::UpdateNode *un = cmdupdate->mutable_update_node();
@@ -685,7 +683,7 @@ void PMGDQuery::UpdateNode(int ref,
 
     for (auto it = props.begin(); it != props.end(); ++it)
     {
-        PMGDProp *p = un->add_properties();
+        PMGDProp* p = un->add_properties();
         set_property(p, it.key().asString(), *it);
     }
 
@@ -713,12 +711,12 @@ void PMGDQuery::UpdateNode(int ref,
 
 void PMGDQuery::AddEdge(int ident,
                         int src, int dst,
-                        const std::string &tag,
-                        const Json::Value &props)
+                        const std::string& tag,
+                        const Json::Value& props)
 {
     _readonly = false;
 
-    PMGDCmd *cmdedge = new PMGDCmd();
+    PMGDCmd* cmdedge = new PMGDCmd();
     cmdedge->set_cmd_grp_id(_current_group_id);
     cmdedge->set_cmd_id(PMGDCmd::AddEdge);
     PMGD::protobufs::AddEdge *ae = cmdedge->mutable_add_edge();
@@ -731,7 +729,7 @@ void PMGDQuery::AddEdge(int ident,
 
     for (auto it = props.begin(); it != props.end(); ++it)
     {
-        PMGDProp *p = e->add_properties();
+        PMGDProp* p = e->add_properties();
         set_property(p, it.key().asString(), *it);
     }
 
@@ -739,15 +737,15 @@ void PMGDQuery::AddEdge(int ident,
 }
 
 void PMGDQuery::UpdateEdge(int ref, int src_ref, int dest_ref,
-                           const std::string &tag,
-                           const Json::Value &props,
-                           const Json::Value &remove_props,
-                           const Json::Value &constraints,
+                           const std::string& tag,
+                           const Json::Value& props,
+                           const Json::Value& remove_props,
+                           const Json::Value& constraints,
                            bool unique)
 {
     _readonly = false;
 
-    PMGDCmd *cmdupdate = new PMGDCmd();
+    PMGDCmd* cmdupdate = new PMGDCmd();
     cmdupdate->set_cmd_id(PMGDCmd::UpdateEdge);
     cmdupdate->set_cmd_grp_id(_current_group_id);
     PMGD::protobufs::UpdateEdge *ue = cmdupdate->mutable_update_edge();
@@ -755,7 +753,7 @@ void PMGDQuery::UpdateEdge(int ref, int src_ref, int dest_ref,
 
     for (auto it = props.begin(); it != props.end(); ++it)
     {
-        PMGDProp *p = ue->add_properties();
+        PMGDProp* p = ue->add_properties();
         set_property(p, it.key().asString(), *it);
     }
 
@@ -784,13 +782,13 @@ void PMGDQuery::UpdateEdge(int ref, int src_ref, int dest_ref,
 }
 
 void PMGDQuery::QueryNode(int ref,
-                          const std::string &tag,
-                          const Json::Value &link,
-                          const Json::Value &constraints,
-                          const Json::Value &results,
+                          const std::string& tag,
+                          const Json::Value& link,
+                          const Json::Value& constraints,
+                          const Json::Value& results,
                           bool unique)
 {
-    PMGDCmd *cmdquery = new PMGDCmd();
+    PMGDCmd* cmdquery = new PMGDCmd();
     cmdquery->set_cmd_id(PMGDCmd::QueryNode);
     cmdquery->set_cmd_grp_id(_current_group_id);
 
@@ -827,12 +825,12 @@ void PMGDQuery::QueryNode(int ref,
 }
 
 void PMGDQuery::QueryEdge(int ref, int src_ref, int dest_ref,
-                          const std::string &tag,
-                          const Json::Value &constraints,
-                          const Json::Value &results,
+                          const std::string& tag,
+                          const Json::Value& constraints,
+                          const Json::Value& results,
                           bool unique)
 {
-    PMGDCmd *cmdquery = new PMGDCmd();
+    PMGDCmd* cmdquery = new PMGDCmd();
     cmdquery->set_cmd_id(PMGDCmd::QueryEdge);
     cmdquery->set_cmd_grp_id(_current_group_id);
 
@@ -857,3 +855,4 @@ void PMGDQuery::QueryEdge(int ref, int src_ref, int dest_ref,
 
     _cmds.push_back(cmdquery);
 }
+
