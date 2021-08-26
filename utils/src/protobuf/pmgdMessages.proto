@@ -162,6 +162,7 @@ enum ResponseType {
 
     // Just introduce a TX response type
     TX = 7;
+    Properties = 8;
 }
 
 // Indicate whether to And or Or the property predicates specified
@@ -399,4 +400,6 @@ message CommandResponse
     // Indicate if the response is for a node or edge so we can populate
     // JSON correctly, especially for queries.
     bool node_edge = 8;
+
+    repeated string op_list_value = 9;
 }

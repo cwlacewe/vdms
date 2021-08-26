@@ -184,7 +184,8 @@
         "sum":        { "type": "string" },
         "limit":      { "$ref": "#/definitions/positiveInt" },
         "sort":       { "$ref": "#/definitions/oneOfSort"},
-        "blob":       { "$ref": "#/definitions/blob" }
+        "blob":       { "$ref": "#/definitions/blob" },
+        "properties":      { "type": "string" }
       },
       "additionalProperties": false
     },
