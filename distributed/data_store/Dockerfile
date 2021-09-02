@@ -4,6 +4,7 @@
 ARG UBUNTU_VERSION=20.04
 ARG UBUNTU_NAME=focal
 ARG BUILD_THREADS=-j16
+ARG MAVEN_OPTS='-Dhttps.nonProxyHosts="localhost|127.0.0.1"'
 
 #1
 FROM ubuntu:${UBUNTU_VERSION}
@@ -36,13 +37,13 @@ https://github.com/opencv/opencv.git && git clone \
 https://github.com/tristanpenman/valijson.git && git clone \
 https://github.com/Kitware/CMake.git && git clone \
 https://github.com/facebookresearch/faiss.git && curl \
-http://zlib.net/zlib-1.2.11.tar.gz -o zlib-1.2.11.tar.gz && curl \ 
+http://zlib.net/zlib-1.2.11.tar.gz -o zlib-1.2.11.tar.gz && curl \
 https://downloads.apache.org/commons/codec/binaries/commons-codec-1.15-bin.tar.gz \
 -o /commons-codec-1.15-bin.tar.gz && curl \
 https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar \
 -o /usr/share/java/json-simple-1.1.1.jar
 
-RUN cd /CMake && ./bootstrap && make -j16 && make install && cd / && cd swig && \ 
+RUN cd /CMake && ./bootstrap && make -j16 && make install && cd / && cd swig && \
 ./autogen.sh && ./configure && make -j16 && make install && cd /faiss && mkdir build && \
 cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && make -j16 && make -j16 && \
 make install && cd /grpc && git submodule update --init --recursive && \
@@ -82,13 +83,12 @@ RUN apt-get install -y maven
 
 RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
     /grpc/third_party/protobuf/src/protoc && \
-    cd /grpc/third_party/protobuf/java/core && mvn package && \
-    echo "cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar" > \
-    tmp_script && bash tmp_script && \
-    cd / 
+    cd /grpc/third_party/protobuf/java/core && \
+    mvn package -Dhttps.nonProxyHosts="localhost|127.0.0.1" && \
+    cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar
 
 # Valijson
-RUN cd /valijson && cp -r include/* /usr/local/include/ 
+RUN cd /valijson && cp -r include/* /usr/local/include/
 
 RUN git clone https://github.com/omp87/vdms.git && cd vdms && \
 git checkout develop && git submodule update --init --recursive && \
