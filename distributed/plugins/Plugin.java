@@ -28,7 +28,7 @@ public class Plugin
     protected int outgoingMessageRegistrySize; /**< size  of the circular buffer OutgoingMessageRegistry */
     protected ArrayList<VdmsTransaction>[] outgoingMessageBuffer; /**<  buffer of messages that should be transmitted back to a producer. This buffer can be used to compare responses returning to ensure they match*/
     protected ArrayList<PassList> allFilterFields; /**<  ArrayList holding all of the PassLists that have been created. This is only neeed when we are perfoming filtering and not needed when performing replication*/
-    
+
     public Plugin()
     {
         //Create a queue for each direction
@@ -53,7 +53,7 @@ public class Plugin
             outgoingMessageBuffer[i] = new ArrayList<VdmsTransaction>();
         }
     }
-    
+
     public void AddPublishersFromFile(String fileName)
     {
         try{
@@ -81,7 +81,7 @@ public class Plugin
             System.exit(-1);
         }
     }
-    
+
     public void AddSubscribersFromFile(String fileName)
     {
         try{
@@ -108,9 +108,9 @@ public class Plugin
             e.printStackTrace();
             System.exit(-1);
         }
-    }    
-    
-    
+    }
+
+
     /**
     * function to send data back to the producer. If we are doing replication, this function must ensure that multiple reponses for the same message are not returned to the producer. This is doen using a message registry - a circular buffer that documents when a message is sent to a consumer and prevents further responses for the same message.
     * @param message - this is the response from a consumer that should be sent to a producer
@@ -128,7 +128,7 @@ public class Plugin
             {
                 publisherDataQueue.put(message);
             }
-            
+
             //we remove messages that are index - 1/2 (buffer size) for MessageBuffer and the MessageRegistry
             if(message.GetMessageId() - (int) (outgoingMessageRegistrySize / 2) >=0 )
             {
@@ -142,7 +142,7 @@ public class Plugin
             System.exit(-1);
         }
     }
-    
+
     public void AddToConsumerQueue(VdmsTransaction message )
     {
         try
@@ -157,34 +157,34 @@ public class Plugin
             e.printStackTrace();
             System.exit(-1);
         }
-    } 
-    
+    }
+
     //Add this entry to list of consumers
     public void AddNewSubscriber(SubscriberServiceThread nThread)
     {
         subscriberList.add(nThread);
     }
-    
+
     public void AddNewPublisher(PublisherServiceThread nThread)
     {
         publisherList.add(nThread);
     }
-    
+
     public List<SubscriberServiceThread> GetSubscriberList()
-    {      
+    {
         return subscriberList;
     }
-    
+
     public List<PublisherServiceThread> GetPublisherList()
-    {      
+    {
         return publisherList;
     }
-    
+
     public void AddOutgoingMessageRegistry(int messageId, int threadId)
     {
         outgoingMessageRegistry[messageId % outgoingMessageRegistrySize].add(threadId);
     }
-    
+
     protected void InitThreads()
     {
         //Start all of the threads. We start the destination nodes first so that no data from the sources is acceptd
@@ -197,7 +197,7 @@ public class Plugin
             subscriberList.get(i).start();
         }
     }
-    
+
     //function is used when filtering data to different consumers but not for replication
     protected void LoadFilterFields(String filterConfigFileName)
     {
@@ -224,6 +224,6 @@ public class Plugin
             e.printStackTrace();
             System.exit(-1);
         }
-    } 
-    
+    }
+
 }

@@ -1,8 +1,6 @@
-
 import json
 import pyaml
 import sys
-
 from collections import OrderedDict
 
 config_file_name = sys.argv[1]
@@ -18,7 +16,7 @@ output = OrderedDict()
 output["version"] = "\'3.0\'"
 services = {}
 
-output_environment_workers = ""
+# output_environment_workers = ""
 
 for this_data_store in data_stores:
     output_data_store = {}
@@ -27,6 +25,7 @@ for this_data_store in data_stores:
     output_data_store_ports = []
     output_data_store_ports.append( "\'" + str(this_data_store["port"]) + ":" + str(this_data_store["port"]) + "\'")
     output_data_store["ports"] = output_data_store_ports
+
     output_data_store_build = {}
     output_data_store_build["context"] = "\'data_store\'"
     output_data_store_build["dockerfile"] = "\'Dockerfile\'"
@@ -35,8 +34,6 @@ for this_data_store in data_stores:
     output_data_store_environment["NETWORK_PORT"] = this_data_store["port"]
     output_data_store["environment"] = output_data_store_environment
     services[this_data_store["name"]] = output_data_store
-
-
 
 output_manager = {}
 output_manager["container_name"] = "\'" + manager["name"] + "\'"
@@ -73,24 +70,22 @@ for this_worker in workers:
     for this_destination in this_worker["destinations"]:
         output_worker_depends_on.append("\'" + this_destination.split(":")[0] + "\'")
         output_worker_destinations = output_worker_destinations + this_destination + ","
-        
-        
+
     output_worker["depends_on"] = output_worker_depends_on
     output_worker["container_name"] = "\'" + this_worker["name"] + "\'"
     output_worker["hostname"] = "\'" + this_worker["name"] + "\'"
-    
+
     output_worker_build = {}
     output_worker_build["context"] = "\'plugins\'"
     output_worker_build["dockerfile"] = "\'Dockerfile\'"
     output_worker["build"] = output_worker_build
     output_worker_environment = {}
     output_worker_environment["SOURCES"] = output_worker_sources
-    output_worker_environment["DESTINATIONS"] = output_worker_destinations    
+    output_worker_environment["DESTINATIONS"] = output_worker_destinations
     output_worker["environment"] = output_worker_environment
 
     services[this_worker["name"]] = output_worker
 
-    
 output["services"] = services
 
 print(pyaml.dump(output))

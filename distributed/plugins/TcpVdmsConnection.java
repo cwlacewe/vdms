@@ -6,12 +6,12 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-class TcpVdmsConnection extends VdmsConnection 
+class TcpVdmsConnection extends VdmsConnection
 {
-    Socket socket; /**< socket to use to communicate  */  
-    DataInputStream in; /**< input data stream connecting to socket */  
-    DataOutputStream out; /**< output data stream connecting to socket */  
-    
+    Socket socket; /**< socket to use to communicate  */
+    DataInputStream in; /**< input data stream connecting to socket */
+    DataOutputStream out; /**< output data stream connecting to socket */
+
     /**
     * constructor to create a structure with a TCP connection and the input/output streams
     * @param initString string containing jsaon values that contains information needed to initialize the TCP connection
@@ -42,10 +42,10 @@ class TcpVdmsConnection extends VdmsConnection
     * function that closes the tcp connection and terminates the input and output data streams
     * @see TcpVdmsConnection()
     * @return void()
-    */    
+    */
     public void Close()
     {
-        try 
+        try
         {
             in.close();
             out.close();
@@ -55,9 +55,9 @@ class TcpVdmsConnection extends VdmsConnection
         {
             e.printStackTrace();
             System.out.println("Socket was closed\n");
-        }        
+        }
     }
-    
+
     /**
     * write an initial message to the manager to indicate that this is not an actual client but a plugin. The information to write is provided by json configuration file
     * @return void()
@@ -72,10 +72,10 @@ class TcpVdmsConnection extends VdmsConnection
         catch(IOException e)
         {
             e.printStackTrace();
-            System.exit(-1); 
+            System.exit(-1);
         }
     }
-    
+
     /**
     * write the a VDMS transaction which consists of writing 4 byte integer size and a the buffer or payload
     * @see Read()
@@ -85,7 +85,7 @@ class TcpVdmsConnection extends VdmsConnection
     public void Write(VdmsTransaction outMessage)
     {
         try
-        {    
+        {
             out.write(outMessage.GetSize());
             out.write(outMessage.GetBuffer());
         }
@@ -95,12 +95,12 @@ class TcpVdmsConnection extends VdmsConnection
             System.exit(-1);
         }
     }
-    
+
     /**
     * write the a VDMS transaction in addition to extended information related to database transaction performance
     * @see ReadExtended()
     * @return void()
-    */    
+    */
     public void WriteExtended(VdmsTransaction outMessage)
     {
         Write(outMessage);
@@ -114,10 +114,10 @@ class TcpVdmsConnection extends VdmsConnection
         {
             e.printStackTrace();
             System.exit(-1);
-        } 
+        }
     }
-    
-    
+
+
     /**
     * a function to read a basic VDMS transaction consisting of 4 byte size and then the protobuf payload og the given size
     * @see ReadExtended()
@@ -149,14 +149,14 @@ class TcpVdmsConnection extends VdmsConnection
         }
         return readValue;
     }
-    
+
     /**
     * read the a VDMS transaction in addition to extended information related to database transaction performance
     * @see Read()
     * @return VdmsTransaction - an extened VDMS Transaction that includes the basic message in addition to the the extended information
     */
     public VdmsTransaction ReadExtended()
-    {  
+    {
         VdmsTransaction readValue = Read();
         try
         {

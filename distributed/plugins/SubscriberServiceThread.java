@@ -11,28 +11,28 @@ import org.json.simple.parser.ParseException;
 
 class SubscriberServiceThread extends Thread
 {
-    VdmsConnection connection; /**< VDMS connection that includes socket and additional socket information */ 
-    boolean m_bRunThread = true; /**< flag that keeps the thread inside a while loop while it is running  */ 
-    int id; /**< thread id assigigned when all threads are created */ 
-    int type; /**< flag indicating whether this thread is a consumer or producer */ 
-    int messageId; /**< messageId  indicating how many messages have come through this consumer*/ 
-    int passListId; /**<  list of messages that can be forwaded to this consumer */ 
-    Plugin manager; /**< manager that is the source for data */ 
-    BlockingQueue<VdmsTransaction> responseQueue; /**< qeuee holding newly arrived data that should be sent to consumers */ 
-    VdmsTransaction initSequence; /**< sequence to be sent to manager to indicate plugin type */ 
-    PassList passList; /**< list of types of messages that should be communicated to consumers  */ 
-    
+    VdmsConnection connection; /**< VDMS connection that includes socket and additional socket information */
+    boolean m_bRunThread = true; /**< flag that keeps the thread inside a while loop while it is running  */
+    int id; /**< thread id assigigned when all threads are created */
+    int type; /**< flag indicating whether this thread is a consumer or producer */
+    int messageId; /**< messageId  indicating how many messages have come through this consumer*/
+    int passListId; /**<  list of messages that can be forwaded to this consumer */
+    Plugin manager; /**< manager that is the source for data */
+    BlockingQueue<VdmsTransaction> responseQueue; /**< qeuee holding newly arrived data that should be sent to consumers */
+    VdmsTransaction initSequence; /**< sequence to be sent to manager to indicate plugin type */
+    PassList passList; /**< list of types of messages that should be communicated to consumers  */
+
     public SubscriberServiceThread()
-    { 
+    {
         super();
         responseQueue = null;
         initSequence = null;
         passList = null;
         passListId = -1;
         connection = null;
-    } 
-    
-    public SubscriberServiceThread(Plugin nManager, VdmsConnection nConnection, int nThreadId) 
+    }
+
+    public SubscriberServiceThread(Plugin nManager, VdmsConnection nConnection, int nThreadId)
     {
         responseQueue = new ArrayBlockingQueue<VdmsTransaction>(128);
         manager = nManager;
@@ -41,8 +41,8 @@ class SubscriberServiceThread extends Thread
         messageId = 0;
         passListId = nConnection.GetPassListId();
         passList = null;
-    } 
-    
+    }
+
     public void SetPassList(PassList nPassList)
     {
         passList = nPassList;
@@ -77,7 +77,7 @@ class SubscriberServiceThread extends Thread
                 JSONArray jsonArray = (JSONArray) jsonString.parse(newTmpMessage.getJson());
                 JSONObject jsonObject = (JSONObject) jsonArray.get(0);
                 //Iterate through the keys in this message and check against the keys that should be published to this node
-                for (Object key : jsonObject.keySet()) 
+                for (Object key : jsonObject.keySet())
                 {
                     for(int i = 0; i < passList.GetCriteriaSize(); i++)
                     {
@@ -88,7 +88,7 @@ class SubscriberServiceThread extends Thread
                         }
                     }
                     System.out.println(key.toString());
-                }                
+                }
                 if(passMessage)
                 {
                     responseQueue.add(newMessage);
@@ -104,16 +104,16 @@ class SubscriberServiceThread extends Thread
             }
         }
     }
-    
-    public void run() 
-    { 
+
+    public void run()
+    {
         VdmsTransaction returnedMessage;
         Boolean threadInitFlag = false;
         VdmsTransaction newTransaction = null;
-        
+
         try
-        { 
-            while(m_bRunThread) 
+        {
+            while(m_bRunThread)
             {
                 if(threadInitFlag == false)
                 {
@@ -124,7 +124,7 @@ class SubscriberServiceThread extends Thread
                     }
                     threadInitFlag = true;
                 }
-                
+
                 returnedMessage = responseQueue.take();
                 //need to check to see if there is a message id - needs to have message id here for pass back up
                 String tmpString = new String(returnedMessage.GetBuffer(), StandardCharsets.UTF_8);
@@ -139,13 +139,13 @@ class SubscriberServiceThread extends Thread
                 manager.AddToProducerQueue(newTransaction);
             }
         }
-        catch(Exception e) 
-        { 
-            e.printStackTrace(); 
-        } 
-        finally 
-        { 
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        finally
+        {
             connection.Close();
-        } 
-    } 
+        }
+    }
 }

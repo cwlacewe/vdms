@@ -6,13 +6,13 @@ import java.nio.ByteOrder;
 */
 class VdmsTransaction
 {
-    byte size[];  /**< buffer that contains the size of data that will be transmitted with VDMS protobuf */  
-    byte buffer[];  /**< buffer holding the VDMS protobuf */  
-    int messageId;  /**< id assigned to message  */  
-    int threadId;   /**< threadId corresponding with sender of this message */  
-    long timestamp;  /**< time at which this message was created */  
-    Boolean emptyTransactionFlag;  /**< flag indicating whether this message contains valid information */      
-    
+    byte size[];  /**< buffer that contains the size of data that will be transmitted with VDMS protobuf */
+    byte buffer[];  /**< buffer holding the VDMS protobuf */
+    int messageId;  /**< id assigned to message  */
+    int threadId;   /**< threadId corresponding with sender of this message */
+    long timestamp;  /**< time at which this message was created */
+    Boolean emptyTransactionFlag;  /**< flag indicating whether this message contains valid information */
+
     /**
     * a constructor to create a new VDMS transaction. The messageId and timestamp receive non-valid numbers and will be set by other functions
     * @param nSize size of protobuf transaction as a byte array. This is same format that is sent by client code
@@ -30,12 +30,12 @@ class VdmsTransaction
         messageId = -1;
         timestamp = 0;
     }
-    
+
     /**
     * a constructor to create a new VDMS transaction. The messageId and timestamp receive non-valid numbers and will be set by other functions
     * @param nSize size of protobuf transaction as a byte array. Size is sent as an integer and must be converted to buffer format used by client
     * @param nBuffer buffer holding protobuf with VDMS Transaction
-    */    
+    */
     public VdmsTransaction(int nSize, byte[] nBuffer)
     {
         emptyTransactionFlag = true;
@@ -48,34 +48,34 @@ class VdmsTransaction
         messageId = -1;
         timestamp = 0;
     }
-    
+
     /**
     * function to return whether the transaction has valid data
     * @return Boolean flag that indicates if this transaction contains valid data
-    */    
+    */
     public Boolean GetEmptyTransactionFlag()
     {
         return emptyTransactionFlag;
     }
-    
+
     /**
-    * function to get size of the VDMS transaction protobuf 
+    * function to get size of the VDMS transaction protobuf
     * @return byte array that holds the size of the VDMS database transaction
-    */    
+    */
     public byte[] GetSize()
     {
         return size;
     }
-    
+
     /**
-    * function to get the contents of the protobuf containing the VDMS database transaction 
+    * function to get the contents of the protobuf containing the VDMS database transaction
     * @return byte array that holds the protobuf content of VDMS transaction
-    */    
+    */
     public byte[] GetBuffer()
     {
         return buffer;
     }
-    
+
     /**
     * function to get the id of the message
     * @see SetMessageId()
@@ -85,7 +85,7 @@ class VdmsTransaction
     {
         return messageId;
     }
-    
+
     /**
     * function to set the id of the current transaction
     * @param nId new ID  corresponding with thread that created this transaction
@@ -96,7 +96,7 @@ class VdmsTransaction
     {
         messageId = nId;
     }
-    
+
     /**
     * function to get the id of the thread that originating this transaction
     * @see SetThreadId()
@@ -106,7 +106,7 @@ class VdmsTransaction
     {
         return threadId;
     }
-    
+
     /**
     * function to set the timestamp of new transaction with a new value
     * @param nId new ID  corresponding with thread that created this transaction
@@ -117,7 +117,7 @@ class VdmsTransaction
     {
         threadId = nId;
     }
-    
+
     /**
     * function to get the timestamp of a transaction
     * @see SetTimestamp()
@@ -127,7 +127,7 @@ class VdmsTransaction
     {
         return timestamp;
     }
-    
+
     /**
     * function to set the timestamp of new transaction with a new value
     * @param nTimestamp new timestamp corresponding with message creation time
@@ -138,5 +138,5 @@ class VdmsTransaction
     {
         timestamp = nTimestamp;
     }
-    
+
 }
